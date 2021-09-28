@@ -1,0 +1,130 @@
+{% extends 'basic2.html' %}
+{% block title %} blogPost {% endblock title %}
+{% block blogactive %} active {% endblock blogactive %}
+{% block body %}
+{% load get_dict %}
+<div class="container my-3">
+    <h2>Coding Articles by iCoder</h2>
+
+    <div
+        class="row no-gutters border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 my-4 position-relative">
+        <div class="col p-4 d-flex flex-column position-static">
+            <strong class="d-inline-block mb-2 text-primary">Author : {{allpost.author}}</strong>
+            <h3 class="mb-0">{{allpost.title}}</h3>
+            <div class="mb-1 text-muted">{{allpost.timeStamp}}</div>
+            <p class="card-text mb-auto">{{allpost.content}}</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>Comments ({{comments|length}})</h1>
+        {% if user.is_authenticated %}
+        <form action="/blog/postcomment" method='post'>{% csrf_token %}
+            <div class="mb-3">
+                <label for="exampleInputEmail1" class="form-label">Post Comments</label>
+                <input type="text" class="form-control" id="comment" name="comment" aria-describedby="emailHelp"
+                    placeholder="Enter your comment">
+            </div>
+            <input type="hidden" name="postsno" value="{{allpost.sno}}">
+            <input type="hidden" name="parentSno" value="">
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+        {% else %}
+        <h3>Login To comment on Post</h3>
+        {% endif %}
+    </div>
+    {% if comments %}
+    {% for comment in comments %}
+    <!-- <div class="container"> -->
+    <div class="row my-4">
+        <div class="col-md-1">
+            <img class="logo mx-auto d-block w-100 p-2" src="/static/user_icon.png" alt="image">
+        </div>
+
+        <div class="col-md-11 ">
+            <h5>Comment By - <b>{{comment.user.username}}</b></h5><span
+                class="badge bg-secondary">{{comment.timeStamp}}</span>
+            <hr class="dropdown-divider bg-dark">
+            <div>{{comment.comment}}</div>
+
+            <div class="reply mx-0">
+                <button type="button" class="btn btn-sm btn-secondary my-2" data-toggle="modal"
+                    data-target="#replyBox{{comment.sno}}">
+                    Reply
+                </button>
+                {% if user.is_authenticated %}
+                <div class="modal fade" id="replyBox{{comment.sno}}" tabindex="-1"
+                    aria-labelledby="replyBox{{comment.sno}}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="signupModalTitle">Comment Here</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form action="/blog/postcomment" method="post">
+                                    {% csrf_token %}
+                                    <div class="form-group">
+                                        <label for="comment">Post a reply </label>
+                                        <input type="text" class="form-control" name="comment"
+                                            placeholder="Enter comment here">
+                                        <input type="hidden" name="parentSno" value="{{comment.sno}}">
+                                    </div>
+                                    <input type="hidden" name="postsno" value="{{allpost.sno}}">
+                                    <button type="submit" class="btn btn-primary">Submit</button>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="modal fade" id="replyBox{{comment.sno}}" tabindex="-1"
+                    aria-labelledby="replyBox{{comment.sno}}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="signupModalTitle">Comment Here</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <h2>Login to comment on a Post</h2>
+                            </div>
+                            <div class="modal-footer">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                <h5>Replies ({{replydict|get_val:comment.sno|length}})</h5>
+                <div class="replies my-2 ">
+
+
+                    {% for reply in replydict|get_val:comment.sno %}
+                    <div class="row my-4">
+                        <div class="col-md-1">
+                            <img class="logo mx-auto d-block w-75 p-2 my-2" src="/static/user_icon.png" alt="image">
+                        </div>
+                        <div class="col-md-11 my-2">
+                            <b>{{reply}}</b> at {{reply.timeStamp}}
+                            <br>
+                            {{reply.comment}}
+                            <br>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <h2>No comments yet.. Be the first to comment</h2>
+    {% endif %}
+</div>
+{% endblock body %}
